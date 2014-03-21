@@ -11,6 +11,7 @@ use Router\Exception\RouterException;
  * @property  string      $controller
  * @property  string      $action
  * @property  array|null  $params
+ * @property  int         $relevanceIndex
  */
 class RoutePattern
 {
@@ -18,6 +19,8 @@ class RoutePattern
     private $controller;
     private $action;
     private $params;
+
+    private $relevanceIndex = 0;
 
     /**
      * @param      $pattern
@@ -31,13 +34,14 @@ class RoutePattern
         $this->controller = $controller;
         $this->action = $action;
         $this->params = $params;
-
-        $this->validateParams();
     }
 
-    private function validateParams()
+    /**
+     * @param int $relevancyIndex
+     */
+    public function setRelevancyIndex($relevancyIndex)
     {
-//todo: add pattern validation
+        $this->relevanceIndex = $relevancyIndex;
     }
 
     /**

@@ -10,6 +10,11 @@ class Router implements IRouter
 {
     protected $routes;
 
+    /**
+     * @param callable $patternConstructorDelegate
+     *
+     * @throws Exception\RouterException
+     */
     public function run(callable $patternConstructorDelegate)
     {
         $routes = call_user_func($patternConstructorDelegate);
@@ -23,6 +28,47 @@ class Router implements IRouter
         }
 
         $this->routes = $routes;
+    }
+
+    /**
+     * @param string $controller
+     * @param string $action
+     * @param array  $params
+     *
+     * @throws Exception\RouterException
+     *
+     * @return mixed|string
+     */
+    public function getUrl($controller, $action, $params = array())
+    {
+        $url = null;
+
+        $matched = null;
+
+        foreach ($this->routes as $route) {
+            if (!$this->isRouteMatch($route, $controller, $action, $params)) {
+                continue;
+            }
+
+            $matched = $this->choseMoreRelevant($matched, $route);
+        }
+
+        if ($matched === null) {
+            throw new RouterException('No one route configured for this params');
+        }
+
+        return $this->compileRoute($matched);
+    }
+
+    protected function compileRoute(RoutePattern $pattern)
+    {
+        return preg_replace_callback(
+            '/\{([^}]*)\}/',
+            function ($matches) use ($pattern) {
+                //todo: realise params replace, think about additional params pattern
+            },
+            $pattern->pattern
+        );
     }
 
     /**
@@ -50,33 +96,18 @@ class Router implements IRouter
         return true;
     }
 
-    protected function choseMoreRelevant($newRoute, $currentRoute)
+    /**
+     * @param RoutePattern $newRoute
+     * @param RoutePattern $currentRoute
+     *
+     * @return RoutePattern
+     */
+    protected function choseMoreRelevant(RoutePattern $newRoute, RoutePattern $currentRoute)
     {
         if ($currentRoute === null) {
             return $newRoute;
         }
-//todo: add relevant compare
-        return $currentRoute;
-    }
 
-    public function getUrl($controller, $action, $params = array())
-    {
-        $url = null;
-
-        $matched = null;
-
-        foreach ($this->routes as $route) {
-            if (!$this->isRouteMatch($route, $controller, $action, $params)) {
-                continue;
-            }
-
-            $matched = $this->choseMoreRelevant($matched, $route);
-        }
-
-        if (count($matched) == 0) {
-            throw new RouterException('No one route configured for this params');
-        }
-
-        return $url;
+        return $currentRoute->relevanceIndex > $newRoute->relevanceIndex ? $currentRoute : $newRoute;
     }
 }
