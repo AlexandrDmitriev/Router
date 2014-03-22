@@ -6,16 +6,19 @@ use Router\Exception\RouterException;
 
 /**
  * Class RoutePattern
+ *
  * @package Router\Entity
- * @property  string      $pattern
- * @property  string      $controller
- * @property  string      $action
- * @property  array|null  $params
- * @property  int         $relevanceIndex
+ *
+ * @property  UrlPattern      $pattern
+ * @property  string          $controller
+ * @property  string          $action
+ * @property  array|null      $params
+ * @property  int             $relevanceIndex
  */
 class RoutePattern
 {
     private $pattern;
+
     private $controller;
     private $action;
     private $params;
