@@ -3,10 +3,22 @@
 namespace Router\Services;
 
 use Router\Entity\RoutePattern;
-use Router\Entity\UrlPattern;
 
 class RouteService
 {
+    /**
+     * @var ParamsService
+     */
+    protected $paramsService;
+
+    /**
+     * @param ParamsService $paramsService
+     */
+    public function __construct(ParamsService $paramsService)
+    {
+        $this->paramsService = $paramsService;
+    }
+
     /**
      * @param RoutePattern $pattern
      * @param string       $controller
@@ -26,7 +38,7 @@ class RouteService
                     case 'action':
                         return $action;
                     case 'params':
-                        $replacement = $this->compileParams($pattern->pattern, $params);
+                        $replacement = $this->paramsService->compileParams($pattern->pattern, $params);
                         $params = array();
                         return $replacement;
                     default:
@@ -45,22 +57,6 @@ class RouteService
         return $preparedUrl;
     }
 
-    /**
-     * @param UrlPattern $pattern
-     * @param array      $params
-     *
-     * @return string
-     */
-    protected function compileParams(UrlPattern $pattern, array $params)
-    {
-        $paramsUrlParts = array();
-
-        foreach ($params as $paramName => $paramValue) {
-            $paramsUrlParts[] = sprintf($pattern->paramsPattern, $paramName, $paramValue);
-        }
-
-        return implode($pattern->separator, $paramsUrlParts);
-    }
 
     /**
      * @param RoutePattern $routePattern
@@ -80,13 +76,26 @@ class RouteService
             return false;
         }
 
-        if ($routePattern->params && $routePattern->params != $params) {
+        $patternParams = $this->paramsService->getPatternParams($routePattern->pattern);
+
+        foreach($patternParams as $p) {
+
+        }
+
+        foreach ($params as $paramName => $paramValue) {
+            if ($routePattern->defaultParams[$paramName]) {
+
+                continue;
+            }
+            if ($routePattern->pattern->params[$paramName]) {
+                continue;
+            }
+
             return false;
         }
 
-        return true;
+        return $this->paramsService->isParamsMatch($routePattern->pattern, $notPredefined);
     }
-
 
     /**
      * @param RoutePattern $newRoute

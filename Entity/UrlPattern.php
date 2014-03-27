@@ -2,20 +2,24 @@
 
 namespace Router\Entity;
 
+use Router\Utility\BaseAccessor;
+
 /**
  * Class UrlPattern
  *
  * @property string $urlPattern
  * @property string $paramsPattern
  * @property string $separator params separator
+ * @property array $params params in pattern
  *
  * @package Router\Entity
  */
-class UrlPattern
+class UrlPattern extends BaseAccessor
 {
     protected $urlPattern;
     protected $paramsPattern;
     protected $separator;
+    protected $params;
 
     /**
      * @param string $urlPattern
@@ -27,5 +31,10 @@ class UrlPattern
         $this->urlPattern = $urlPattern;
         $this->paramsPattern = $paramsPattern;
         $this->separator = $separator;
+    }
+
+    public function setParams($params)
+    {
+        $this->params = $params;
     }
 }

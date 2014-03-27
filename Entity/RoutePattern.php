@@ -2,7 +2,7 @@
 
 namespace Router\Entity;
 
-use Router\Exception\RouterException;
+use Router\Utility\BaseAccessor;
 
 /**
  * Class RoutePattern
@@ -12,31 +12,31 @@ use Router\Exception\RouterException;
  * @property  UrlPattern      $pattern
  * @property  string          $controller
  * @property  string          $action
- * @property  array|null      $params
+ * @property  array|null      $defaultParams
  * @property  int             $relevanceIndex
  */
-class RoutePattern
+class RoutePattern extends BaseAccessor
 {
     private $pattern;
 
     private $controller;
     private $action;
-    private $params;
+    private $defaultParams;
 
     private $relevanceIndex = 0;
 
     /**
-     * @param      $pattern
-     * @param null $controller
-     * @param null $action
-     * @param null $params
+     * @param UrlPattern $pattern
+     * @param null       $controller
+     * @param null       $action
+     * @param array      $defaultParams
      */
-    public function __construct($pattern, $controller = null, $action = null, $params = null)
+    public function __construct($pattern, $controller = null, $action = null, $defaultParams = array())
     {
         $this->pattern = $pattern;
         $this->controller = $controller;
         $this->action = $action;
-        $this->params = $params;
+        $this->defaultParams = $defaultParams;
     }
 
     /**
@@ -45,20 +45,5 @@ class RoutePattern
     public function setRelevancyIndex($relevancyIndex)
     {
         $this->relevanceIndex = $relevancyIndex;
-    }
-
-    /**
-     * @param $name
-     *
-     * @return mixed
-     * @throws \Router\Exception\RouterException
-     */
-    public function __get($name)
-    {
-        if (property_exists($this, $name)) {
-            return $this->$name;
-        }
-
-        throw new RouterException("Can not return protected or private property: {$name}. It is not exist.");
     }
 }
