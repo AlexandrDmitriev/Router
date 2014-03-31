@@ -30,7 +30,7 @@ class RouteService
     public function compileRoute(RoutePattern $pattern, $controller, $action, array $params)
     {
         $preparedUrl = preg_replace_callback(
-            '/\{([^}]*)\}/',
+            '/\{([^}]+)\}/',
             function ($matches) use ($pattern, $controller, $action, &$params) {
                 switch ($matches[1]) {
                     case 'controller':
@@ -78,37 +78,23 @@ class RouteService
 
         $patternParams = $this->paramsService->getPatternParams($routePattern->pattern);
 
-        foreach($patternParams as $p) {
-
+        if (count(array_diff_key($patternParams, $params)) > 0) {
+            return false;
         }
 
-        foreach ($params as $paramName => $paramValue) {
-            if ($routePattern->defaultParams[$paramName]) {
-
-                continue;
-            }
-            if ($routePattern->pattern->params[$paramName]) {
+        foreach (array_diff_key($params, $patternParams) as $paramName => $paramValue) {
+            if (!$routePattern->defaultParams[$paramName] || $routePattern->defaultParams[$paramName] != $paramValue) {
                 continue;
             }
 
             return false;
         }
 
-        return $this->paramsService->isParamsMatch($routePattern->pattern, $notPredefined);
+        return true;
     }
 
-    /**
-     * @param RoutePattern $newRoute
-     * @param RoutePattern $currentRoute
-     *
-     * @return RoutePattern
-     */
-    public function choseMoreRelevant(RoutePattern $newRoute, RoutePattern $currentRoute)
+    public function isRouteMatchUri(RoutePattern $routePattern, $uri, &$params)
     {
-        if ($currentRoute === null) {
-            return $newRoute;
-        }
-
-        return $currentRoute->relevanceIndex > $newRoute->relevanceIndex ? $currentRoute : $newRoute;
+        return true;
     }
 }

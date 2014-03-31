@@ -42,10 +42,33 @@ class ParamsService
         return implode($pattern->separator, $paramsUrlParts);
     }
 
-    public function getPatternParams(UrlPattern $pattern, array $params)
+    public function getPatternParams(UrlPattern $pattern)
     {
-        $pattern->params;
+        //todo: add to cache
+        if ($pattern->params === null) {
+            $pattern->params = $this->calculateParams($pattern->urlPattern);
+        }
 
-        return array();
+        return $pattern->params;
+    }
+
+    protected function calculateParams($pattern)
+    {
+        $paramsList = array();
+        preg_match('/\{([^}]+)\}/', $pattern, $matches);
+        for ($i = 0; $i < count($matches); $i++) {
+            if ($i % 2 == 0 || !$this->isParamPlaceholder($matches[$i])) {
+                continue;
+            }
+
+            $paramsList[$matches[$i]] = true;
+        }
+
+        return $paramsList;
+    }
+
+    protected function isParamPlaceholder($placeholder)
+    {
+        return $placeholder != 'action' && $placeholder != 'controller' && $placeholder != 'params';
     }
 }

@@ -51,20 +51,28 @@ class Router implements IRouter
      */
     public function getUrl($controller, $action, $params = array())
     {
-        $matched = null;
+        foreach ($this->routes as $route) {
+            if ($this->routeService->isRouteMatch($route, $controller, $action, $params)) {
+                return $this->routeService->compileRoute($route, $controller, $action, $params);
+            }
+        }
+
+        throw new RouterException('No one route configured for this params');
+    }
+
+    /**
+     * @return array Array with three keys controller, action, params required
+     */
+    public function getRouteParams()
+    {
+        $requestUri = $_SERVER['REQUEST_URI'];
 
         foreach ($this->routes as $route) {
-            if (!$this->routeService->isRouteMatch($route, $controller, $action, $params)) {
-                continue;
+            if ($this->routeService->isRouteMatchUri($route, $requestUri, $params)) {
+                return $params;
             }
-
-            $matched = $this->routeService->choseMoreRelevant($matched, $route);
         }
 
-        if ($matched === null) {
-            throw new RouterException('No one route configured for this params');
-        }
-
-        return $this->routeService->compileRoute($matched, $controller, $action, $params);
+        throw new RouterException('No one route found');
     }
 }
