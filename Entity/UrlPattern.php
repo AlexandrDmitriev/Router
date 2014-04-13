@@ -11,6 +11,7 @@ use Router\Utility\BaseAccessor;
  * @property string $paramsPattern
  * @property string $separator params separator
  * @property array $params params in pattern
+ * @property UrlMatcher $routeMatcher Is Uri match route Regexp and expected params list
  *
  * @package Router\Entity
  */
@@ -20,6 +21,7 @@ class UrlPattern extends BaseAccessor
     protected $paramsPattern;
     protected $separator;
     protected $params;
+    protected $routeMatcher;
 
     /**
      * @param string $urlPattern
@@ -33,7 +35,18 @@ class UrlPattern extends BaseAccessor
         $this->separator = $separator;
     }
 
-    public function setParams($params)
+    /**
+     * @param UrlMatcher $routeMatcher
+     */
+    public function setRouteMatcher(UrlMatcher $routeMatcher)
+    {
+        $this->routeMatcher = $routeMatcher;
+    }
+
+    /**
+     * @param array $params
+     */
+    public function setParams(array $params)
     {
         $this->params = $params;
     }

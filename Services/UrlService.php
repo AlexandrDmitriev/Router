@@ -2,9 +2,10 @@
 
 namespace Router\Services;
 
+use Router\Entity\UrlMatcher;
 use Router\Entity\UrlPattern;
 
-class ParamsService
+class UrlService
 {
     protected $serializeService;
 
@@ -67,8 +68,36 @@ class ParamsService
         return $paramsList;
     }
 
+    /**
+     * @param UrlPattern $urlPattern
+     *
+     * @return UrlMatcher
+     */
+    public function getUrlMatcher(UrlPattern $urlPattern)
+    {
+        if ($urlPattern->routeMatcher === null) {
+            $urlPattern->routeMatcher = $this->calculateUrlMatcher($urlPattern);
+        }
+
+        return $urlPattern->routeMatcher;
+    }
+
+    protected function calculateUrlMatcher(UrlPattern $urlPattern)
+    {
+        $regExp = '';
+        $params = array();
+        return new UrlMatcher($regExp, $params);
+    }
+
     protected function isParamPlaceholder($placeholder)
     {
         return $placeholder != 'action' && $placeholder != 'controller' && $placeholder != 'params';
+    }
+
+    public function extractRequestParams(array $paramsPieces, UrlMatcher $urlMatcher)
+    {
+        $result = array();
+
+        return $result;
     }
 }

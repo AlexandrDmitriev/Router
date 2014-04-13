@@ -3,20 +3,21 @@
 namespace Router\Services;
 
 use Router\Entity\RoutePattern;
+use Router\Exception\RouterException;
 
 class RouteService
 {
     /**
-     * @var ParamsService
+     * @var UrlService
      */
-    protected $paramsService;
+    protected $urlService;
 
     /**
-     * @param ParamsService $paramsService
+     * @param UrlService $paramsService
      */
-    public function __construct(ParamsService $paramsService)
+    public function __construct(UrlService $paramsService)
     {
-        $this->paramsService = $paramsService;
+        $this->urlService = $paramsService;
     }
 
     /**
@@ -38,7 +39,7 @@ class RouteService
                     case 'action':
                         return $action;
                     case 'params':
-                        $replacement = $this->paramsService->compileParams($pattern->pattern, $params);
+                        $replacement = $this->urlService->compileParams($pattern->pattern, $params);
                         $params = array();
                         return $replacement;
                     default:
@@ -66,7 +67,7 @@ class RouteService
      *
      * @return bool
      */
-    public function isRouteMatch(RoutePattern $routePattern, $controller, $action, array $params)
+    public function isRouteMatchParams(RoutePattern $routePattern, $controller, $action, array $params)
     {
         if ($routePattern->controller && $routePattern->controller != $controller) {
             return false;
@@ -76,7 +77,7 @@ class RouteService
             return false;
         }
 
-        $patternParams = $this->paramsService->getPatternParams($routePattern->pattern);
+        $patternParams = $this->urlService->getPatternParams($routePattern->pattern);
 
         if (count(array_diff_key($patternParams, $params)) > 0) {
             return false;
@@ -93,8 +94,37 @@ class RouteService
         return true;
     }
 
-    public function isRouteMatchUri(RoutePattern $routePattern, $uri, &$params)
+    public function isRouteMatchUri(RoutePattern $routePattern, $uri, array &$params)
     {
-        return true;
+        $matcher = $this->urlService->getUrlMatcher($routePattern->pattern);
+
+        $isMatch = preg_match($matcher->regExp, $uri, $matches) > 0 && $matches[0] == $uri;
+
+        if ($isMatch) {
+            array_shift($matches);
+            $requestParams = $this->urlService->extractRequestParams($matches, $matcher);
+
+            if ($routePattern->controller) {
+                $params['controller'] = $routePattern->controller;
+            } elseif (!empty($requestParams['controller'])) {
+                $params['controller'] = $requestParams['controller'];
+                unset($requestParams['controller']);
+            } else {
+                throw new RouterException('Parsing error unrecognized controller');
+            }
+
+            if ($routePattern->action) {
+                $params['action']  = $routePattern->action;
+            } elseif (!empty($requestParams['action'])) {
+                $params['action'] = $requestParams['action'];
+                unset($requestParams['action']);
+            } else {
+                throw new RouterException('Parsing error unrecognized action');
+            }
+
+
+        }
+
+        return $isMatch;
     }
 }

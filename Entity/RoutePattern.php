@@ -23,15 +23,13 @@ class RoutePattern extends BaseAccessor
     private $action;
     private $defaultParams;
 
-    private $relevanceIndex = 0;
-
     /**
      * @param UrlPattern $pattern
      * @param null       $controller
      * @param null       $action
      * @param array      $defaultParams
      */
-    public function __construct($pattern, $controller = null, $action = null, $defaultParams = array())
+    public function __construct(UrlPattern $pattern, $controller = null, $action = null, $defaultParams = array())
     {
         $this->pattern = $pattern;
         $this->controller = $controller;

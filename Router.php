@@ -10,6 +10,7 @@ use Router\Services\RouteService;
 class Router implements IRouter
 {
     protected $routes;
+
     /**
      * @var RouteService
      */
@@ -52,7 +53,7 @@ class Router implements IRouter
     public function getUrl($controller, $action, $params = array())
     {
         foreach ($this->routes as $route) {
-            if ($this->routeService->isRouteMatch($route, $controller, $action, $params)) {
+            if ($this->routeService->isRouteMatchParams($route, $controller, $action, $params)) {
                 return $this->routeService->compileRoute($route, $controller, $action, $params);
             }
         }
