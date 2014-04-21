@@ -9,11 +9,13 @@ use Router\Utility\BaseAccessor;
  *
  * @package Router\Entity
  *
- * @property string $regExp;
- * @property array  $params;
+ * @property string $regExp url matcher regexp;
+ * @property array  $params array of param names;
  */
 class UrlMatcher extends BaseAccessor
 {
+    const PARAMS_MATCHER = '/\{([^}]+)\}/';
+
     private $regExp;
     private $params;
 

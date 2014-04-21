@@ -2,8 +2,10 @@
 
 namespace Router\Services;
 
+use Router\Entity\Request;
 use Router\Entity\UrlMatcher;
 use Router\Entity\UrlPattern;
+use Router\Exception\RouterException;
 
 class UrlService
 {
@@ -56,13 +58,13 @@ class UrlService
     protected function calculateParams($pattern)
     {
         $paramsList = array();
-        preg_match('/\{([^}]+)\}/', $pattern, $matches);
+        preg_match(UrlMatcher::PARAMS_MATCHER, $pattern, $matches);
         for ($i = 0; $i < count($matches); $i++) {
-            if ($i % 2 == 0 || !$this->isParamPlaceholder($matches[$i])) {
+            if ($i % 2 == 0) {
                 continue;
             }
 
-            $paramsList[$matches[$i]] = true;
+            $paramsList[] = $matches[$i];
         }
 
         return $paramsList;
@@ -82,22 +84,73 @@ class UrlService
         return $urlPattern->routeMatcher;
     }
 
+    //todo:replace logic into automate with magazine memory
+    /**
+     * @param UrlPattern $urlPattern
+     *
+     * @throws RouterException
+     *
+     * @return UrlMatcher
+     */
     protected function calculateUrlMatcher(UrlPattern $urlPattern)
     {
-        $regExp = '';
         $params = array();
+
+        $regExp = preg_replace_callback(
+            UrlMatcher::PARAMS_MATCHER,
+            function ($matches) use (&$params, $urlPattern) {
+                if (count($matches) < 2 || strlen($matches[1]) == 0) {
+                    throw new RouterException('Pattern is incorrect');
+                }
+
+                $params[] = $matches[1];
+
+                return '(.*)';
+            },
+            $urlPattern->urlPattern
+        );
+
+        if (!$regExp) {
+            throw new RouterException('Router matcher creation failed');
+        }
+
+        $regExp = '/'.addslashes($regExp).'/Um';
+
         return new UrlMatcher($regExp, $params);
     }
 
-    protected function isParamPlaceholder($placeholder)
+    /**
+     * @param $placeholder
+     *
+     * @return bool
+     */
+    public function isParamPlaceholder($placeholder)
     {
-        return $placeholder != 'action' && $placeholder != 'controller' && $placeholder != 'params';
+        return $placeholder != 'action' && $placeholder != 'controller' && $placeholder != Request::PARAMS;
     }
 
+    /**
+     * @param array      $paramsPieces
+     * @param UrlMatcher $urlMatcher
+     *
+     * @return array
+     */
     public function extractRequestParams(array $paramsPieces, UrlMatcher $urlMatcher)
     {
         $result = array();
 
+        $params = $urlMatcher->params;
+
+        do {
+            $result[current($params)] = current($paramsPieces);
+        } while (next($paramsPieces) && next($params));
+
         return $result;
+    }
+
+    public function hasParamsPlaceholder(UrlPattern $urlPattern)
+    {
+        $params = $this->getPatternParams($urlPattern);
+        return array_key_exists(Request::PARAMS, $params);
     }
 }

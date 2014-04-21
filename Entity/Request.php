@@ -8,6 +8,10 @@ use Router\Exception\RequestException;
 class Request implements IRequest
 {
 
+    const PARAMS = 'params';
+    const ACTION = 'action';
+    const CONTROLLER = 'controller';
+
     protected $params;
 
     protected $requestMethod;
